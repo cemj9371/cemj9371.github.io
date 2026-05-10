@@ -1,0 +1,14 @@
+# .vercelignore
+.git
+.gitignore
+README.md
+node_modules/.bin
+.DS_Store
+*.log
+.env
+.env.local
+.vscode
+.idea
+coverage
+.nyc_output
+*.tsbuildinfo
